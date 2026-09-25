@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SurplusToShelter | Food Rescue Network</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              600: '#059669',
+              700: '#047857',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#f8fafc] text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl text-xs font-semibold">
+    <span id="toastIcon">✨</span>
+    <span id="toastMessage">Action completed</span>
+  </div>
+
+  <!-- QR Modal -->
+  <div id="qrModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center pb-2 border-b">
+        <h3 class="font-bold text-slate-900 text-sm">Rescue Handover QR</h3>
+        <button onclick="closeQrModal()" class="text-slate-400 hover:text-slate-700 text-lg font-bold">&times;</button>
+      </div>
+      <p class="text-xs text-slate-500">Scan at pickup/drop point to cryptographically verify custody.</p>
+      <div id="qrcode" class="flex justify-center p-4 bg-slate-50 rounded-2xl border"></div>
+      <div class="text-[11px] font-mono text-slate-600 bg-slate-100 py-1.5 rounded-lg" id="qrBatchTag"></div>
+      <button onclick="closeQrModal()" class="w-full py-2.5 bg-slate-900 text-white font-bold text-xs rounded-xl">Done</button>
+    </div>
+  </div>
+
+  <!-- Authentication Modal (Login Dialog) -->
+  <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full space-y-5 shadow-2xl">
+      <div class="flex justify-between items-center border-b pb-3">
+        <div>
+          <h3 class="font-bold text-slate-900 text-base">Portal Login</h3>
+          <p class="text-xs text-slate-500">Choose your role or quick login</p>
+        </div>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+      </div>
+
+      <!-- Quick Role Selection -->
+      <div class="space-y-2.5">
+        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Select Stakeholder Role</p>
+        <button onclick="performLogin('Hotel Grand', 'DONOR')" class="w-full text-left p-3 rounded-2xl border border-slate-200 hover:border-brand-600 hover:bg-brand-50/30 transition flex items-center justify-between">
+          <div>
+            <div class="font-bold text-xs text-slate-900">🏨 Commercial Food Donor</div>
+            <div class="text-[11px] text-slate-400">Hotels, Caterers, Dining Halls</div>
+          </div>
+          <span class="text-xs bg-brand-50 text-brand-700 font-bold px-2 py-1 rounded-lg">Login as Donor →</span>
+        </button>
+
+        <button onclick="performLogin('Asha Shelter Home', 'SHELTER')" class="w-full text-left p-3 rounded-2xl border border-slate-200 hover:border-brand-600 hover:bg-brand-50/30 transition flex items-center justify-between">
+          <div>
+            <div class="font-bold text-xs text-slate-900">🏠 Shelter & NGO Coordinator</div>
+            <div class="text-[11px] text-slate-400">Accept ration batches & track intake</div>
+          </div>
+          <span class="text-xs bg-brand-50 text-brand-700 font-bold px-2 py-1 rounded-lg">Login as Shelter →</span>
+        </button>
+
+        <button onclick="performLogin('Rohan (Volunteer #21)', 'VOLUNTEER')" class="w-full text-left p-3 rounded-2xl border border-slate-200 hover:border-brand-600 hover:bg-brand-50/30 transition flex items-center justify-between">
+          <div>
+            <div class="font-bold text-xs text-slate-900">🚴 Volunteer Transit Partner</div>
+            <div class="text-[11px] text-slate-400">Pickup, navigation & verified delivery</div>
+          </div>
+          <span class="text-xs bg-brand-50 text-brand-700 font-bold px-2 py-1 rounded-lg">Login as Volunteer →</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      
+      <!-- Brand -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white shadow-md">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582"/></svg>
+        </div>
+        <div>
+          <h1 class="text-sm font-extrabold tracking-tight text-slate-900 leading-none">Surplus<span class="text-brand-600">To</span>Shelter</h1>
+          <p class="text-[10px] font-medium text-slate-400 mt-0.5">Automated Rescue Routing</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+        <button onclick="switchTab('donor')" id="tab-donor" class="nav-btn px-3.5 py-1.5 rounded-lg bg-white text-slate-900 shadow-sm transition">Donor</button>
+        <button onclick="switchTab('shelter')" id="tab-shelter" class="nav-btn px-3.5 py-1.5 rounded-lg text-slate-600 transition">Shelter <span id="shelterBadge" class="ml-1 px-1.5 py-0.2 bg-brand-100 text-brand-700 text-[10px] rounded-full">2</span></button>
+        <button onclick="switchTab('volunteer')" id="tab-volunteer" class="nav-btn px-3.5 py-1.5 rounded-lg text-slate-600 transition">Volunteer <span id="volunteerBadge" class="ml-1 px-1.5 py-0.2 bg-slate-200 text-slate-700 text-[10px] rounded-full">1</span></button>
+        <button onclick="switchTab('recycle')" id="tab-recycle" class="nav-btn px-3.5 py-1.5 rounded-lg text-slate-600 transition">Bio-Recycle</button>
+        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-btn px-3.5 py-1.5 rounded-lg text-slate-600 transition">Impact</button>
+      </nav>
+
+      <!-- Auth Controls (Right Side) -->
+      <div class="flex items-center gap-2">
+        <!-- Logged In Container -->
+        <div id="userProfileBar" class="flex items-center gap-2">
+          <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <div class="text-[11px] leading-tight">
+              <div class="font-bold text-slate-800" id="userNameLabel">Hotel Grand</div>
+              <div class="text-[9px] text-brand-600 font-semibold" id="userRoleLabel">DONOR</div>
+            </div>
+          </div>
+          <!-- Log Out Button -->
+          <button onclick="performLogout()" title="Sign out" class="p-2 border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl transition flex items-center justify-center text-xs font-bold gap-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            <span class="hidden sm:inline">Logout</span>
+          </button>
+        </div>
+
+        <!-- Guest / Logged Out Button -->
+        <button id="loginTriggerBtn" onclick="openAuthModal()" class="hidden px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-sm">
+          Log In
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main View -->
+  <main class="max-w-6xl mx-auto px-6 py-8 flex-1 w-full">
+
+    <!-- 1. DONOR VIEW -->
+    <section id="view-donor" class="tab-view">
+      <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+          <div class="flex items-center justify-between border-b pb-4">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">Post Surplus Food</h2>
+              <p class="text-xs text-slate-500">Fast 1-minute registration before safe window closes</p>
+            </div>
+            <button type="button" onclick="loadRealisticSample()" class="text-xs font-semibold px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-xl transition border border-brand-200/60">
+              ⚡ Demo Autofill
+            </button>
+          </div>
+
+          <form id="donorForm" onsubmit="handleDonorSubmit(event)" class="space-y-4 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Donor Name / Kitchen</label>
+                <input required type="text" id="donorName" placeholder="e.g. Hotel Grand" class="w-full bg-slate-50 border rounded-xl px-3 py-2 text-sm outline-none" />
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Food Item Details</label>
+                <input required type="text" id="foodName" placeholder="e.g. Dal Makhani & Jeera Rice" class="w-full bg-slate-50 border rounded-xl px-3 py-2 text-sm outline-none" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Category</label>
+                <select id="foodCategory" class="w-full bg-slate-50 border rounded-xl px-2 py-2 text-xs">
+                  <option value="Cooked">Cooked Meals</option>
+                  <option value="Raw">Raw Produce</option>
+                  <option value="Bakery">Bakery / Dry</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Storage</label>
+                <select id="storageTemp" class="w-full bg-slate-50 border rounded-xl px-2 py-2 text-xs">
+                  <option value="Hot">♨️ Hot Fresh</option>
+                  <option value="Chilled">❄️ Chilled</option>
+                  <option value="Dry">📦 Ambient</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Servings</label>
+                <input required type="number" id="servings" placeholder="45" min="1" class="w-full bg-slate-50 border rounded-xl px-3 py-2 text-sm outline-none" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Safe Consumption Window (Hours)</label>
+              <div class="grid grid-cols-4 gap-2">
+                <button type="button" onclick="selectHours(1)" class="hour-btn py-1.5 border rounded-xl font-bold bg-slate-50 text-slate-600" data-hour="1">1 Hour</button>
+                <button type="button" onclick="selectHours(2)" class="hour-btn py-1.5 border rounded-xl font-bold bg-brand-600 text-white" data-hour="2">2 Hours</button>
+                <button type="button" onclick="selectHours(3)" class="hour-btn py-1.5 border rounded-xl font-bold bg-slate-50 text-slate-600" data-hour="3">3 Hours</button>
+                <button type="button" onclick="selectHours(6)" class="hour-btn py-1.5 border rounded-xl font-bold bg-slate-50 text-slate-600" data-hour="6">6 Hours</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Pickup Address</label>
+                <input required type="text" id="pickupAddress" placeholder="Block C, Urban Square" class="w-full bg-slate-50 border rounded-xl px-3 py-2 text-sm outline-none" />
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Contact Phone</label>
+                <input required type="tel" id="contactPhone" placeholder="+91 98111 22334" class="w-full bg-slate-50 border rounded-xl px-3 py-2 text-sm outline-none" />
+              </div>
+            </div>
+
+            <button type="submit" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-xs transition shadow-md">
+              Broadcast Surplus Rations →
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. SHELTER VIEW -->
+    <section id="view-shelter" class="tab-view hidden space-y-4">
+      <div class="border-b pb-2">
+        <h2 class="text-lg font-bold text-slate-900">Shelter Intake Feed</h2>
+        <p class="text-xs text-slate-500">Auto-ranked by Proximity (40%), Capacity (25%), Expiry (25%)</p>
+      </div>
+      <div id="shelterList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- 3. VOLUNTEER VIEW -->
+    <section id="view-volunteer" class="tab-view hidden space-y-4">
+      <div class="border-b pb-2">
+        <h2 class="text-lg font-bold text-slate-900">Volunteer Transit Tasks</h2>
+        <p class="text-xs text-slate-500">Secure handovers with dynamic cryptographic QR verification</p>
+      </div>
+      <div id="volunteerList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+
+    <!-- 4. BIO RECYCLE VIEW -->
+    <section id="view-recycle" class="tab-view hidden space-y-4">
+      <div class="border-b pb-2">
+        <h2 class="text-lg font-bold text-slate-900">Bio-Energy Diverter</h2>
+        <p class="text-xs text-slate-500">Rations past safe consumption window diverted away from landfills to Bio-CNG</p>
+      </div>
+      <div id="recycleList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+
+    <!-- 5. IMPACT VIEW -->
+    <section id="view-dashboard" class="tab-view hidden space-y-6">
+      <div class="border-b pb-2">
+        <h2 class="text-lg font-bold text-slate-900">Live Impact Engine</h2>
+        <p class="text-xs text-slate-500">Real-time calculations: 0.4 kg/meal, 2.5 kg CO2e saved/kg food</p>
+      </div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl border shadow-sm">
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Meals Rescued</span>
+          <div id="metricMeals" class="text-2xl font-extrabold text-slate-900 mt-1">125</div>
+          <span class="text-[11px] text-brand-600 font-semibold">Verified Safe</span>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border shadow-sm">
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Weight Diverted</span>
+          <div id="metricWeight" class="text-2xl font-extrabold text-slate-900 mt-1">50 kg</div>
+          <span class="text-[11px] text-slate-400">Landfill Prevention</span>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border shadow-sm">
+          <span class="text-[10px] font-bold text-slate-400 uppercase">CO2e Prevented</span>
+          <div id="metricCo2" class="text-2xl font-extrabold text-brand-700 mt-1">125 kg</div>
+          <span class="text-[11px] text-brand-600 font-semibold">GHG Reduction</span>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border shadow-sm">
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Verified Handovers</span>
+          <div id="metricDeliveries" class="text-2xl font-extrabold text-slate-900 mt-1">3</div>
+          <span class="text-[11px] text-slate-400">QR Validated</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    let activeHours = 2;
+    // User Authentication State
+    let currentUser = {
+      name: "Hotel Grand",
+      role: "DONOR",
+      isLoggedIn: true
+    };
+
+    let items = [
+      {
+        id: "RES-901",
+        donorName: "Hotel Grand",
+        foodName: "Dal Makhani & Basmati Rice",
+        category: "Cooked",
+        storageTemp: "Hot",
+        servings: 45,
+        expiryHours: 2,
+        pickupAddress: "Block C, Urban Mall Area",
+        contactPhone: "+91 98111 22334",
+        status: "POSTED",
+        score: 94
+      },
+      {
+        id: "RES-902",
+        donorName: "University Dining Hall",
+        foodName: "Paneer Pulao & Roti",
+        category: "Cooked",
+        storageTemp: "Hot",
+        servings: 35,
+        expiryHours: 3,
+        pickupAddress: "South Campus Gate 2",
+        contactPhone: "+91 98222 33445",
+        status: "POSTED",
+        score: 88
+      },
+      {
+        id: "RES-899",
+        donorName: "City Centre Bakery",
+        foodName: "Assorted Wheat Loaves",
+        category: "Bakery",
+        storageTemp: "Dry",
+        servings: 40,
+        expiryHours: 1,
+        pickupAddress: "Main Square, Shop 12",
+        contactPhone: "+91 98333 44556",
+        status: "IN_TRANSIT",
+        score: 91
+      },
+      {
+        id: "RES-870",
+        donorName: "Fresh Agro Mandi",
+        foodName: "Over-ripe Bananas & Veg",
+        category: "Raw",
+        storageTemp: "Dry",
+        servings: 60,
+        expiryHours: 0,
+        pickupAddress: "Wholesale Mandi Gate 4",
+        contactPhone: "+91 98444 55667",
+        status: "EXPIRED_ROUTED",
+        score: 0
+      }
+    ];
+
+    function showToast(msg, icon = "✅") {
+      const toast = document.getElementById("toast");
+      document.getElementById("toastIcon").innerText = icon;
+      document.getElementById("toastMessage").innerText = msg;
+      toast.classList.remove("translate-y-24", "opacity-0");
+      setTimeout(() => toast.classList.add("translate-y-24", "opacity-0"), 3000);
+    }
+
+    // AUTH FUNCTIONS
+    function openAuthModal() {
+      document.getElementById("authModal").classList.remove("hidden");
+    }
+
+    function closeAuthModal() {
+      document.getElementById("authModal").classList.add("hidden");
+    }
+
+    function performLogin(name, role) {
+      currentUser = { name, role, isLoggedIn: true };
+      updateAuthUI();
+      closeAuthModal();
+      showToast(`Welcome back, ${name}! (${role})`, "👋");
+
+      if (role === 'DONOR') switchTab('donor');
+      else if (role === 'SHELTER') switchTab('shelter');
+      else if (role === 'VOLUNTEER') switchTab('volunteer');
+    }
+
+    function performLogout() {
+      currentUser = { name: "Guest", role: "GUEST", isLoggedIn: false };
+      updateAuthUI();
+      showToast("Logged out successfully.", "🔒");
+    }
+
+    function updateAuthUI() {
+      const userBar = document.getElementById("userProfileBar");
+      const loginBtn = document.getElementById("loginTriggerBtn");
+
+      if (currentUser.isLoggedIn) {
+        userBar.classList.remove("hidden");
+        loginBtn.classList.add("hidden");
+        document.getElementById("userNameLabel").innerText = currentUser.name;
+        document.getElementById("userRoleLabel").innerText = currentUser.role;
+      } else {
+        userBar.classList.add("hidden");
+        loginBtn.classList.remove("hidden");
+      }
+    }
+
+    function openQrModal(batchId) {
+      document.getElementById("qrModal").classList.remove("hidden");
+      document.getElementById("qrBatchTag").innerText = `HASH: ${batchId}-${Date.now().toString().slice(-4)}`;
+      document.getElementById("qrcode").innerHTML = "";
+      new QRCode(document.getElementById("qrcode"), {
+        text: `https://surplustoshelter.org/verify?id=${batchId}`,
+        width: 140,
+        height: 140
+      });
+    }
+
+    function closeQrModal() {
+      document.getElementById("qrModal").classList.add("hidden");
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-view").forEach(el => el.classList.add("hidden"));
+      document.querySelectorAll(".nav-btn").forEach(el => {
+        el.classList.remove("bg-white", "text-slate-900", "shadow-sm");
+        el.classList.add("text-slate-600");
+      });
+      document.getElementById(`view-${tabId}`).classList.remove("hidden");
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add("bg-white", "text-slate-900", "shadow-sm");
+        activeBtn.classList.remove("text-slate-600");
+      }
+      renderAll();
+    }
+
+    function selectHours(h) {
+      activeHours = h;
+      document.querySelectorAll(".hour-btn").forEach(btn => {
+        if (Number(btn.dataset.hour) === h) {
+          btn.className = "hour-btn py-1.5 border rounded-xl font-bold bg-brand-600 text-white";
+        } else {
+          btn.className = "hour-btn py-1.5 border rounded-xl font-bold bg-slate-50 text-slate-600";
+        }
+      });
+    }
+
+    function loadRealisticSample() {
+      document.getElementById("donorName").value = currentUser.isLoggedIn ? currentUser.name : "Grand Regency Banquets";
+      document.getElementById("foodName").value = "Dal Makhani, Jeera Rice & 40 Naans";
+      document.getElementById("servings").value = "45";
+      document.getElementById("pickupAddress").value = "Sector 18, Commercial Block A";
+      document.getElementById("contactPhone").value = "+91 98444 11223";
+      selectHours(2);
+      showToast("Autofilled demo payload", "⚡");
+    }
+
+    function handleDonorSubmit(e) {
+      e.preventDefault();
+      if (!currentUser.isLoggedIn) {
+        openAuthModal();
+        showToast("Please log in first to broadcast surplus rations.", "⚠️");
+        return;
+      }
+
+      const newBatch = {
+        id: "RES-" + Math.floor(1000 + Math.random() * 9000),
+        donorName: document.getElementById("donorName").value,
+        foodName: document.getElementById("foodName").value,
+        category: document.getElementById("foodCategory").value,
+        storageTemp: document.getElementById("storageTemp").value,
+        servings: Number(document.getElementById("servings").value),
+        expiryHours: activeHours,
+        pickupAddress: document.getElementById("pickupAddress").value,
+        contactPhone: document.getElementById("contactPhone").value,
+        status: "POSTED",
+        score: Math.floor(89 + Math.random() * 9)
+      };
+      items.unshift(newBatch);
+      document.getElementById("donorForm").reset();
+      selectHours(2);
+      showToast(`Batch #${newBatch.id} broadcasted & algorithmically ranked!`);
+      switchTab("shelter");
+    }
+
+    function acceptFood(id) {
+      const item = items.find(i => i.id === id);
+      if (item) {
+        item.status = "PICKUP_ASSIGNED";
+        showToast("Claimed by shelter! Dispatched to volunteer.");
+        switchTab("volunteer");
+      }
+    }
+
+    function advanceStatus(id, nextStatus) {
+      const item = items.find(i => i.id === id);
+      if (item) {
+        item.status = nextStatus;
+        if (nextStatus === "DELIVERED") {
+          showToast(`Handover verified for #${item.id}! Impact updated.`);
+          switchTab("dashboard");
+        } else {
+          showToast(`Task #${item.id} advanced to ${nextStatus.replace('_', ' ')}.`);
+          renderAll();
+        }
+      }
+    }
+
+    function renderAll() {
+      document.getElementById("shelterBadge").innerText = items.filter(i => i.status === "POSTED").length;
+      document.getElementById("volunteerBadge").innerText = items.filter(i => i.status !== "POSTED" && i.status !== "EXPIRED_ROUTED" && i.status !== "DELIVERED").length;
+
+      // Shelter List
+      const shelterContainer = document.getElementById("shelterList");
+      const activeShelter = items.filter(i => i.status === "POSTED");
+      shelterContainer.innerHTML = activeShelter.map(item => `
+        <div class="bg-white p-5 rounded-2xl border shadow-sm flex flex-col justify-between space-y-3">
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-200">
+                ${item.score}/100 Match Score
+              </span>
+              <span class="text-xs font-mono text-slate-400">#${item.id}</span>
+            </div>
+            <h3 class="font-bold text-sm text-slate-900">${item.foodName}</h3>
+            <p class="text-xs text-slate-500">${item.donorName}</p>
+            <div class="grid grid-cols-2 gap-2 text-xs py-3 border-y border-slate-100 my-3 text-slate-600">
+              <div><span class="text-slate-400 block text-[10px]">SERVINGS</span><strong>${item.servings} Meals</strong></div>
+              <div><span class="text-slate-400 block text-[10px]">STORAGE</span><strong>${item.storageTemp}</strong></div>
+              <div><span class="text-slate-400 block text-[10px]">WINDOW</span><strong>${item.expiryHours}h safe</strong></div>
+              <div><span class="text-slate-400 block text-[10px]">CATEGORY</span><strong>${item.category}</strong></div>
+            </div>
+            <p class="text-[11px] text-slate-500">📍 ${item.pickupAddress}</p>
+          </div>
+          <button onclick="acceptFood('${item.id}')" class="w-full py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-sm">
+            Claim Food Batch
+          </button>
+        </div>
+      `).join("");
+
+      // Volunteer List
+      const volunteerContainer = document.getElementById("volunteerList");
+      const activeVol = items.filter(i => i.status !== "POSTED" && i.status !== "EXPIRED_ROUTED");
+      volunteerContainer.innerHTML = activeVol.map(item => {
+        let actionBtn = "";
+        if (item.status === "PICKUP_ASSIGNED") {
+          actionBtn = `<button onclick="advanceStatus('${item.id}', 'IN_TRANSIT')" class="w-full py-2 bg-slate-900 text-white font-bold text-xs rounded-xl">Confirm Pickup</button>`;
+        } else if (item.status === "IN_TRANSIT") {
+          actionBtn = `<button onclick="advanceStatus('${item.id}', 'DELIVERED')" class="w-full py-2 bg-brand-600 text-white font-bold text-xs rounded-xl">Confirm Handover to Shelter</button>`;
+        } else if (item.status === "DELIVERED") {
+          actionBtn = `<div class="py-1.5 text-center text-xs font-bold text-brand-700 bg-brand-50 rounded-xl">✓ Verified Handover Complete</div>`;
+        }
+
+        const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(item.pickupAddress)}&destination=Shelter+Central+Kitchen`;
+
+        return `
+          <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-xs font-mono font-bold text-slate-700">Dispatch #${item.id}</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${item.status === 'DELIVERED' ? 'bg-brand-100 text-brand-800' : 'bg-amber-100 text-amber-800'}">
+                ${item.status.replace('_', ' ')}
+              </span>
+            </div>
+            <div>
+              <h4 class="font-bold text-sm text-slate-900">${item.foodName} (${item.servings} Servings)</h4>
+              <p class="text-xs text-slate-500">Pickup: ${item.donorName} • ${item.pickupAddress}</p>
+            </div>
+            <div class="flex gap-2">
+              <a href="${mapsUrl}" target="_blank" class="flex-1 py-1.5 rounded-xl border text-slate-700 text-xs font-bold flex items-center justify-center gap-1">📍 Maps</a>
+              <button onclick="openQrModal('${item.id}')" class="flex-1 py-1.5 rounded-xl border bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold flex items-center justify-center gap-1">📱 QR Pass</button>
+              <a href="tel:${item.contactPhone}" class="py-1.5 px-3 rounded-xl border text-slate-700 text-xs font-bold flex items-center justify-center">📞</a>
+            </div>
+            ${actionBtn}
+          </div>
+        `;
+      }).join("");
+
+      // Recycle List
+      const recycleContainer = document.getElementById("recycleList");
+      const expired = items.filter(i => i.status === "EXPIRED_ROUTED");
+      recycleContainer.innerHTML = expired.map(item => `
+        <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-mono font-bold text-slate-700">Batch #${item.id}</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Diverted from Landfill</span>
+          </div>
+          <h4 class="font-bold text-sm text-slate-900">${item.foodName} (${Math.round(item.servings * 0.4)} kg)</h4>
+          <p class="text-xs text-slate-500">Source: ${item.donorName}</p>
+          <div class="text-xs text-brand-700 font-semibold pt-1">🌱 Destination: Municipal Bio-Energy & Composting Facility</div>
+        </div>
+      `).join("");
+
+      // Impact Counters
+      const del = items.filter(i => i.status === "DELIVERED").length;
+      const totalMeals = 125 + (del * 45);
+      const totalWeight = Math.round(totalMeals * 0.4);
+      document.getElementById("metricMeals").innerText = totalMeals;
+      document.getElementById("metricWeight").innerText = `${totalWeight} kg`;
+      document.getElementById("metricCo2").innerText = `${Math.round(totalWeight * 2.5)} kg`;
+      document.getElementById("metricDeliveries").innerText = 3 + del;
+    }
+
+    // Initialize UI
+    updateAuthUI();
+    renderAll();
+  </script>
+</body>
+</html>

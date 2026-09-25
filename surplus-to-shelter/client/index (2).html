@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Surplus to Shelter | Food Rescue Platform</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#f8fafc] text-slate-800 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-100 selection:text-brand-900">
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl border border-slate-800 text-sm font-medium">
+    <span id="toastIcon">✨</span>
+    <span id="toastMessage">Action completed</span>
+  </div>
+
+  <!-- Minimal Aesthetic Header -->
+  <header class="bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-.778.099-1.533.284-2.253" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base font-extrabold tracking-tight text-slate-900 leading-none">Surplus<span class="text-brand-600">To</span>Shelter</h1>
+          <p class="text-[11px] font-medium text-slate-400 mt-0.5">Real-Time Zero Waste Dispatch</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl border border-slate-200/60 text-xs font-semibold">
+        <button onclick="switchTab('donor')" id="tab-donor" class="nav-btn px-4 py-2 rounded-lg transition-all duration-200 bg-white text-slate-900 shadow-sm">
+          Donor Intake
+        </button>
+        <button onclick="switchTab('shelter')" id="tab-shelter" class="nav-btn px-4 py-2 rounded-lg transition-all duration-200 text-slate-600 hover:text-slate-900">
+          Shelter Feed
+          <span id="shelterBadge" class="ml-1.5 px-1.5 py-0.5 bg-brand-100 text-brand-700 text-[10px] font-bold rounded-full">2</span>
+        </button>
+        <button onclick="switchTab('volunteer')" id="tab-volunteer" class="nav-btn px-4 py-2 rounded-lg transition-all duration-200 text-slate-600 hover:text-slate-900">
+          Volunteer
+          <span id="volunteerBadge" class="ml-1.5 px-1.5 py-0.5 bg-slate-200 text-slate-700 text-[10px] font-bold rounded-full">1</span>
+        </button>
+        <button onclick="switchTab('recycle')" id="tab-recycle" class="nav-btn px-4 py-2 rounded-lg transition-all duration-200 text-slate-600 hover:text-slate-900">
+          Bio-Recycle
+        </button>
+        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-btn px-4 py-2 rounded-lg transition-all duration-200 text-slate-600 hover:text-slate-900">
+          Live Impact
+        </button>
+      </nav>
+
+    </div>
+  </header>
+
+  <!-- Main Content Wrapper -->
+  <main class="max-w-6xl mx-auto px-6 py-8 flex-1 w-full">
+
+    <!-- 1. DONOR INTAKE TAB -->
+    <section id="view-donor" class="tab-view">
+      <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/80 shadow-sm relative overflow-hidden">
+          <div class="flex items-start justify-between mb-8 pb-6 border-b border-slate-100">
+            <div>
+              <h2 class="text-xl font-bold text-slate-900 tracking-tight">Post Surplus Food</h2>
+              <p class="text-xs text-slate-500 mt-1">Connect edible surplus directly with nearby community shelters.</p>
+            </div>
+            <button type="button" onclick="loadRealisticSample()" class="text-xs font-semibold px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-xl transition border border-brand-200/60 flex items-center gap-1.5">
+              <span>⚡</span> Autofill Demo Data
+            </button>
+          </div>
+
+          <form id="donorForm" onsubmit="handleDonorSubmit(event)" class="space-y-5 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1.5 tracking-wide uppercase text-[10px]">Donor / Organisation Name</label>
+                <input required type="text" id="donorName" placeholder="e.g. Royal Greens Banquet" class="w-full bg-slate-50/60 focus:bg-white border border-slate-200 focus:border-brand-500 rounded-xl px-3.5 py-2.5 text-sm outline-none transition" />
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1.5 tracking-wide uppercase text-[10px]">Surplus Food Details</label>
+                <input required type="text" id="foodName" placeholder="e.g. Rice, Dal & Mixed Veg" class="w-full bg-slate-50/60 focus:bg-white border border-slate-200 focus:border-brand-500 rounded-xl px-3.5 py-2.5 text-sm outline-none transition" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1.5 tracking-wide uppercase text-[10px]">Category</label>
+                <select id="foodCategory" class="w-full bg-slate-50/60 focus:bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none">
+                  <option value="Cooked Meals">Fresh Cooked</option>
+                  <option value="Raw Produce">Raw Produce</option>
+                  <option value="Bakery / Dry">Packaged / Dry</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1.5 tracking-wide uppercase text-[10px]">Storage Condition</label>
+                <select id="storageTemp" class="w-full bg-slate-50/60 focus:bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm outline-none">
+                  <option value="Hot Container">♨️ Hot Fresh</option>
+                  <option value="Refrigerated">❄️ Chilled</option>
+                  <option value="Dry Storage">📦 Ambient</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1.5 tracking-wide uppercase text-[10px]">Quantity (Servings)</label>
+                <input required type="number" id="servings" placeholder="e.g. 50" min="1" class="w-full bg-slate-50/60 focus:bg-white border border-slate-200 focus:border-brand-500 rounded-xl px-3.5 py-2.5 text-sm outline-none transition" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1.5 tracking-wide uppercase text-[10px]">Safe Consumption Window</label>
+              <div class="grid grid-cols-4 gap-2">
+                <button type="button" onclick="selectHours(1)" class="hour-btn py-2 border rounded-xl font-bold text-xs bg-slate-50 text-slate-600 transition" data-hour="1">1 Hour</button>
+                <button type="button" onclick="selectHours(2)" class="hour-btn py-2 border rounded-xl font-bold text-xs bg-brand-600 border-brand-600 text-white shadow-sm transition" data-hour="2">2 Hours</button>
+                <button type="button" onclick="selectHours(3)" class="hour-btn py-2 border rounded-xl font-bold text-xs bg-slate-50 text-slate-600 transition" data-hour="3">3 Hours</button>
+                <button type="button" onclick="selectHours(5)" class="hour-btn py-2 border rounded-xl font-bold text-xs bg-slate-50 text-slate-600 transition" data-hour="5">5 Hours</button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1.5 tracking-wide uppercase text-[10px]">Pickup Location</label>
+                <input required type="text" id="pickupAddress" placeholder="Street Address / Landmark" class="w-full bg-slate-50/60 focus:bg-white border border-slate-200 focus:border-brand-500 rounded-xl px-3.5 py-2.5 text-sm outline-none transition" />
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1.5 tracking-wide uppercase text-[10px]">Emergency Dispatch Phone</label>
+                <input required type="tel" id="contactPhone" placeholder="+91 98765 43210" class="w-full bg-slate-50/60 focus:bg-white border border-slate-200 focus:border-brand-500 rounded-xl px-3.5 py-2.5 text-sm outline-none transition" />
+              </div>
+            </div>
+
+            <button type="submit" class="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 mt-4">
+              <svg class="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              Broadcast Surplus Food
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. SHELTER FEED TAB -->
+    <section id="view-shelter" class="tab-view hidden space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-200/80">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 tracking-tight">Active Food Feed</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Ranked automatically using Distance (40%), Capacity (25%) & Expiry (25%).</p>
+        </div>
+      </div>
+      <div id="shelterList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Injected via JavaScript -->
+      </div>
+    </section>
+
+    <!-- 3. VOLUNTEER DISPATCH TAB -->
+    <section id="view-volunteer" class="tab-view hidden space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-200/80">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 tracking-tight">Volunteer Dispatch Tasks</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Direct pickup and verified shelter drop-off pipeline.</p>
+        </div>
+      </div>
+      <div id="volunteerList" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Injected via JavaScript -->
+      </div>
+    </section>
+
+    <!-- 4. BIO RECYCLE TAB -->
+    <section id="view-recycle" class="tab-view hidden space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-200/80">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 tracking-tight">Municipal Bio-Energy Diverter</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Batches crossing safe consumption window are routed away from landfills to Composting and Biogas.</p>
+        </div>
+      </div>
+      <div id="recycleList" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Injected via JavaScript -->
+      </div>
+    </section>
+
+    <!-- 5. LIVE IMPACT ANALYTICS TAB -->
+    <section id="view-dashboard" class="tab-view hidden space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-200/80">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 tracking-tight">Real-Time Impact Metrics</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Computed directly from completed and verified rescue operations.</p>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Meals Rescued</span>
+          <div id="metricMeals" class="text-3xl font-extrabold text-slate-900 mt-2">125</div>
+          <span class="text-[11px] text-brand-600 font-semibold mt-1 inline-block">100% Edible Surplus</span>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Food Diverted</span>
+          <div id="metricWeight" class="text-3xl font-extrabold text-slate-900 mt-2">50 kg</div>
+          <span class="text-[11px] text-slate-500 font-medium mt-1 inline-block">0.4 kg / meal factor</span>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">CO2e Emissions Prevented</span>
+          <div id="metricCo2" class="text-3xl font-extrabold text-brand-700 mt-2">125 kg</div>
+          <span class="text-[11px] text-slate-500 font-medium mt-1 inline-block">2.5x landfill saving</span>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Completed Handovers</span>
+          <div id="metricDeliveries" class="text-3xl font-extrabold text-slate-900 mt-2">3</div>
+          <span class="text-[11px] text-brand-600 font-semibold mt-1 inline-block">Verified Deliveries</span>
+        </div>
+      </div>
+
+      <!-- Flow Pipeline Card -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-4">Operations Pipeline</h3>
+        <div class="grid grid-cols-5 text-center text-xs font-bold gap-2">
+          <div class="p-3 bg-slate-50 rounded-xl text-slate-600 border border-slate-100">1. POSTED</div>
+          <div class="p-3 bg-slate-50 rounded-xl text-slate-600 border border-slate-100">2. MATCHED</div>
+          <div class="p-3 bg-slate-50 rounded-xl text-slate-600 border border-slate-100">3. ASSIGNED</div>
+          <div class="p-3 bg-slate-50 rounded-xl text-slate-600 border border-slate-100">4. IN TRANSIT</div>
+          <div class="p-3 bg-brand-50 text-brand-700 rounded-xl border border-brand-200">5. DELIVERED</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Clean Minimal Footer -->
+  <footer class="border-t border-slate-200/70 bg-white py-6">
+    <div class="max-w-6xl mx-auto px-6 text-center text-xs text-slate-400 font-medium">
+      SurplusToShelter • Automated Food Rescue Routing System
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    let activeHours = 2;
+
+    // Database with preloaded clean data
+    let items = [
+      {
+        id: "RES-901",
+        donorName: "Grand Heritage Hotel",
+        foodName: "Dal Makhani & Basmati Rice",
+        category: "Cooked Meals",
+        storageTemp: "Hot Container",
+        servings: 45,
+        expiryHours: 2,
+        pickupAddress: "Block C, Urban Mall Area",
+        contactPhone: "+91 98111 22334",
+        status: "POSTED",
+        score: 94
+      },
+      {
+        id: "RES-902",
+        donorName: "University Dining Facility",
+        foodName: "Paneer Pulao & Roti",
+        category: "Cooked Meals",
+        storageTemp: "Hot Container",
+        servings: 35,
+        expiryHours: 3,
+        pickupAddress: "South Campus Gate 2",
+        contactPhone: "+91 98222 33445",
+        status: "POSTED",
+        score: 88
+      },
+      {
+        id: "RES-899",
+        donorName: "City Bakery Cafe",
+        foodName: "Assorted Bread & Buns",
+        category: "Bakery / Dry",
+        storageTemp: "Dry Storage",
+        servings: 40,
+        expiryHours: 1,
+        pickupAddress: "Main Square, Shop 12",
+        contactPhone: "+91 98333 44556",
+        status: "PICKUP_ASSIGNED",
+        score: 91
+      },
+      {
+        id: "RES-870",
+        donorName: "Fresh Greens Warehouse",
+        foodName: "Ripe Tomatoes & Greens (Over-ripe)",
+        category: "Raw Produce",
+        storageTemp: "Dry Storage",
+        servings: 50,
+        expiryHours: 0,
+        pickupAddress: "Wholesale Mandi Gate 4",
+        contactPhone: "+91 98444 55667",
+        status: "EXPIRED_ROUTED",
+        score: 0
+      }
+    ];
+
+    function showToast(message, icon = "✅") {
+      const toast = document.getElementById("toast");
+      document.getElementById("toastIcon").innerText = icon;
+      document.getElementById("toastMessage").innerText = message;
+      toast.classList.remove("translate-y-20", "opacity-0");
+      setTimeout(() => {
+        toast.classList.add("translate-y-20", "opacity-0");
+      }, 3000);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab-view").forEach(el => el.classList.add("hidden"));
+      document.querySelectorAll(".nav-btn").forEach(el => {
+        el.classList.remove("bg-white", "text-slate-900", "shadow-sm");
+        el.classList.add("text-slate-600");
+      });
+
+      document.getElementById(`view-${tabId}`).classList.remove("hidden");
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      activeBtn.classList.add("bg-white", "text-slate-900", "shadow-sm");
+      activeBtn.classList.remove("text-slate-600");
+
+      renderAll();
+    }
+
+    function selectHours(h) {
+      activeHours = h;
+      document.querySelectorAll(".hour-btn").forEach(btn => {
+        if (Number(btn.dataset.hour) === h) {
+          btn.className = "hour-btn py-2 border rounded-xl font-bold text-xs bg-brand-600 border-brand-600 text-white shadow-sm transition";
+        } else {
+          btn.className = "hour-btn py-2 border rounded-xl font-bold text-xs bg-slate-50 text-slate-600 transition";
+        }
+      });
+    }
+
+    function loadRealisticSample() {
+      document.getElementById("donorName").value = "Spice Garden Restaurant";
+      document.getElementById("foodName").value = "Matar Paneer, Jeera Rice & Chapatis";
+      document.getElementById("servings").value = "45";
+      document.getElementById("pickupAddress").value = "Main Avenue, Sector 12";
+      document.getElementById("contactPhone").value = "+91 98765 12345";
+      selectHours(2);
+      showToast("Autofilled with realistic sample data", "⚡");
+    }
+
+    function handleDonorSubmit(e) {
+      e.preventDefault();
+      const newDonation = {
+        id: "RES-" + Math.floor(1000 + Math.random() * 9000),
+        donorName: document.getElementById("donorName").value,
+        foodName: document.getElementById("foodName").value,
+        category: document.getElementById("foodCategory").value,
+        storageTemp: document.getElementById("storageTemp").value,
+        servings: Number(document.getElementById("servings").value),
+        expiryHours: activeHours,
+        pickupAddress: document.getElementById("pickupAddress").value,
+        contactPhone: document.getElementById("contactPhone").value,
+        status: "POSTED",
+        score: Math.floor(88 + Math.random() * 10)
+      };
+
+      items.unshift(newDonation);
+      document.getElementById("donorForm").reset();
+      selectHours(2);
+
+      showToast(`Food #${newDonation.id} posted & matched successfully!`);
+      switchTab("shelter");
+    }
+
+    function acceptFood(id) {
+      const item = items.find(i => i.id === id);
+      if (item) {
+        item.status = "PICKUP_ASSIGNED";
+        showToast("Food accepted! Dispatch task sent to volunteer.");
+        switchTab("volunteer");
+      }
+    }
+
+    function advanceStatus(id, nextStatus) {
+      const item = items.find(i => i.id === id);
+      if (item) {
+        item.status = nextStatus;
+        if (nextStatus === "DELIVERED") {
+          showToast(`Handover verified for #${item.id}! Impact updated.`);
+          switchTab("dashboard");
+        } else {
+          showToast(`Task #${item.id} updated to ${nextStatus.replace('_', ' ')}.`);
+          renderAll();
+        }
+      }
+    }
+
+    function renderAll() {
+      // Badges
+      const availableCount = items.filter(i => i.status === "POSTED").length;
+      const volunteerCount = items.filter(i => i.status !== "POSTED" && i.status !== "EXPIRED_ROUTED" && i.status !== "DELIVERED").length;
+      document.getElementById("shelterBadge").innerText = availableCount;
+      document.getElementById("volunteerBadge").innerText = volunteerCount;
+
+      // 1. Shelter Render
+      const shelterContainer = document.getElementById("shelterList");
+      const activeShelterItems = items.filter(i => i.status === "POSTED");
+      if (activeShelterItems.length === 0) {
+        shelterContainer.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400 text-xs">No pending surplus donations available right now.</div>`;
+      } else {
+        shelterContainer.innerHTML = activeShelterItems.map(item => `
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex justify-between items-center mb-3">
+                <span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-200/60">
+                  ${item.score}/100 Match Score
+                </span>
+                <span class="text-[11px] font-mono text-slate-400">#${item.id}</span>
+              </div>
+              <h3 class="font-bold text-base text-slate-900">${item.foodName}</h3>
+              <p class="text-xs text-slate-500 mt-0.5">${item.donorName}</p>
+
+              <div class="grid grid-cols-2 gap-2 text-xs py-3.5 border-y border-slate-100 my-4 text-slate-600">
+                <div><span class="text-slate-400 block text-[10px] uppercase font-bold">Quantity</span> <strong class="text-slate-800">${item.servings} Servings</strong></div>
+                <div><span class="text-slate-400 block text-[10px] uppercase font-bold">Storage</span> <strong class="text-slate-800">${item.storageTemp}</strong></div>
+                <div><span class="text-slate-400 block text-[10px] uppercase font-bold">Safe Window</span> <strong class="text-slate-800">${item.expiryHours} Hours</strong></div>
+                <div><span class="text-slate-400 block text-[10px] uppercase font-bold">Category</span> <strong class="text-slate-800">${item.category}</strong></div>
+              </div>
+
+              <p class="text-[11px] text-slate-500">📍 ${item.pickupAddress}</p>
+            </div>
+
+            <button onclick="acceptFood('${item.id}')" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition shadow-sm">
+              Accept & Request Pickup
+            </button>
+          </div>
+        `).join("");
+      }
+
+      // 2. Volunteer Render
+      const volunteerContainer = document.getElementById("volunteerList");
+      const activeVolunteerItems = items.filter(i => i.status !== "POSTED" && i.status !== "EXPIRED_ROUTED");
+      if (activeVolunteerItems.length === 0) {
+        volunteerContainer.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400 text-xs">No active volunteer dispatch orders currently.</div>`;
+      } else {
+        volunteerContainer.innerHTML = activeVolunteerItems.map(item => {
+          let actionBtn = "";
+          if (item.status === "PICKUP_ASSIGNED") {
+            actionBtn = `<button onclick="advanceStatus('${item.id}', 'IN_TRANSIT')" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl transition">Confirm Pickup & Start Transit</button>`;
+          } else if (item.status === "IN_TRANSIT") {
+            actionBtn = `<button onclick="advanceStatus('${item.id}', 'DELIVERED')" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition">Confirm Delivered to Shelter</button>`;
+          } else if (item.status === "DELIVERED") {
+            actionBtn = `<div class="py-2 text-center text-xs font-bold text-brand-700 bg-brand-50 rounded-xl">✓ Successfully Delivered</div>`;
+          }
+
+          const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(item.pickupAddress)}&destination=Shelter+Care+Hub`;
+
+          return `
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-mono font-bold text-slate-700">Dispatch #${item.id}</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${item.status === 'DELIVERED' ? 'bg-brand-100 text-brand-800' : 'bg-amber-100 text-amber-800'}">
+                  ${item.status.replace('_', ' ')}
+                </span>
+              </div>
+
+              <div>
+                <h4 class="font-bold text-sm text-slate-900">${item.foodName} (${item.servings} Servings)</h4>
+                <p class="text-xs text-slate-500 mt-1">Pickup From: ${item.donorName} • ${item.pickupAddress}</p>
+              </div>
+
+              <div class="flex gap-2">
+                <a href="${mapsUrl}" target="_blank" class="flex-1 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 transition">
+                  📍 Directions
+                </a>
+                <a href="tel:${item.contactPhone}" class="flex-1 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 transition">
+                  📞 Call Donor
+                </a>
+              </div>
+
+              ${actionBtn}
+            </div>
+          `;
+        }).join("");
+      }
+
+      // 3. Recycle Render
+      const recycleContainer = document.getElementById("recycleList");
+      const expiredItems = items.filter(i => i.status === "EXPIRED_ROUTED");
+      recycleContainer.innerHTML = expiredItems.map(item => `
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-mono font-bold text-slate-700">Batch #${item.id}</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Diverted from Landfill</span>
+          </div>
+          <h4 class="font-bold text-sm text-slate-900">${item.foodName} (${Math.round(item.servings * 0.4)} kg approx)</h4>
+          <p class="text-xs text-slate-500">Origin: ${item.donorName} (${item.pickupAddress})</p>
+          <div class="text-xs text-brand-700 font-semibold flex items-center gap-1 pt-1">
+            🌱 Target: Regional Municipal Bio-Energy & Composting Unit
+          </div>
+        </div>
+      `).join("");
+
+      // 4. Analytics Render
+      const deliveredCount = items.filter(i => i.status === "DELIVERED").length;
+      const totalMeals = 125 + (deliveredCount * 45);
+      const totalWeight = Math.round(totalMeals * 0.4);
+      const totalCo2 = Math.round(totalWeight * 2.5);
+
+      document.getElementById("metricMeals").innerText = totalMeals;
+      document.getElementById("metricWeight").innerText = `${totalWeight} kg`;
+      document.getElementById("metricCo2").innerText = `${totalCo2} kg`;
+      document.getElementById("metricDeliveries").innerText = 3 + deliveredCount;
+    }
+
+    // Initial render
+    renderAll();
+  </script>
+</body>
+</html>

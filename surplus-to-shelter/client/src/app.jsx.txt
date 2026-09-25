@@ -1,0 +1,114 @@
+import React, { useState } from 'react';
+import DonorPortal from './components/DonorPortal';
+import ShelterFeed from './components/ShelterFeed';
+import VolunteerDispatch from './components/VolunteerDispatch';
+import RecycleHub from './components/RecycleHub';
+import ImpactDashboard from './components/ImpactDashboard';
+import { Utensils, Store, HeartHandshake, Truck, Recycle, BarChart3 } from 'lucide-react';
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState('donor');
+  
+  // Central State Syncing all modules
+  const [donations, setDonations] = useState([
+    {
+      id: 'RES-101',
+      donorName: 'Hotel Grand Residency',
+      foodName: 'Dal Makhani & Jeera Rice',
+      category: 'Cooked',
+      storageTemp: 'Hot',
+      servings: 45,
+      expiryHours: 2,
+      pickupAddress: 'Block 4, City Center',
+      contactPhone: '+91 98111 22334',
+      status: 'POSTED'
+    },
+    {
+      id: 'RES-102',
+      donorName: 'Campus Dining Hall',
+      foodName: 'Vegetable Pulao & Raita',
+      category: 'Cooked',
+      storageTemp: 'Hot',
+      servings: 30,
+      expiryHours: 3,
+      pickupAddress: 'University South Gate',
+      contactPhone: '+91 98222 33445',
+      status: 'POSTED'
+    }
+  ]);
+
+  // When Donor posts new surplus
+  const handlePostSuccess = (newPost) => {
+    const item = {
+      ...newPost,
+      id: 'RES-' + Math.floor(1000 + Math.random() * 9000),
+      status: 'POSTED'
+    };
+    setDonations([item, ...donations]);
+    alert(`Donation #${item.id} posted successfully!`);
+    setActiveTab('shelter'); // automatically switch to shelter to show live feed
+  };
+
+  // When Shelter claims food
+  const handleAcceptFood = (donationId) => {
+    setDonations(donations.map(d => d.id === donationId ? { ...d, status: 'MATCHED' } : d));
+    alert('Matched! Dispatch task created for volunteers.');
+    setActiveTab('volunteer'); // switch to volunteer screen
+  };
+
+  // When Volunteer changes status
+  const handleAdvanceStatus = (donationId, nextStatus) => {
+    setDonations(donations.map(d => d.id === donationId ? { ...d, status: nextStatus } : d));
+    if (nextStatus === 'DELIVERED') {
+      alert('Delivery complete! Impact Dashboard updated.');
+      setActiveTab('dashboard');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col">
+      {/* Top Header */}
+      <header className="bg-white border-b sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('donor')}>
+            <div className="w-9 h-9 bg-emerald-600 rounded-lg flex items-center justify-center text-white font-bold">
+              <Utensils className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="font-bold text-slate-900 leading-tight">Surplus-to-Shelter</h1>
+              <p className="text-[10px] text-emerald-600 font-semibold">Deterministic Food Rescue Routing</p>
+            </div>
+          </div>
+
+          {/* Navigation Bar */}
+          <nav className="flex gap-1">
+            <button onClick={() => setActiveTab('donor')} className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 ${activeTab === 'donor' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600'}`}>
+              <Store className="w-3.5 h-3.5" /> Donor
+            </button>
+            <button onClick={() => setActiveTab('shelter')} className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 ${activeTab === 'shelter' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600'}`}>
+              <HeartHandshake className="w-3.5 h-3.5" /> Shelter Feed
+            </button>
+            <button onClick={() => setActiveTab('volunteer')} className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 ${activeTab === 'volunteer' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600'}`}>
+              <Truck className="w-3.5 h-3.5" /> Volunteer
+            </button>
+            <button onClick={() => setActiveTab('recycle')} className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 ${activeTab === 'recycle' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600'}`}>
+              <Recycle className="w-3.5 h-3.5" /> Recycle Hub
+            </button>
+            <button onClick={() => setActiveTab('dashboard')} className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 ${activeTab === 'dashboard' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600'}`}>
+              <BarChart3 className="w-3.5 h-3.5" /> Dashboard
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      {/* Screen Render View */}
+      <main className="max-w-6xl mx-auto px-4 py-6 flex-1 w-full">
+        {activeTab === 'donor' && <DonorPortal onPostSuccess={handlePostSuccess} />}
+        {activeTab === 'shelter' && <ShelterFeed items={donations} onAccept={handleAcceptFood} />}
+        {activeTab === 'volunteer' && <VolunteerDispatch items={donations} onAdvanceStatus={handleAdvanceStatus} />}
+        {activeTab === 'recycle' && <RecycleHub items={donations} />}
+        {activeTab === 'dashboard' && <ImpactDashboard items={donations} />}
+      </main>
+    </div>
+  );
+}

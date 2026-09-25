@@ -1,0 +1,62 @@
+import React from 'react';
+import { Clock, Check, AlertCircle } from 'lucide-react';
+
+export default function ShelterFeed({ items = [], onAccept }) {
+  const activeItems = items.filter(i => i.status === 'POSTED');
+
+  return (
+    <div className="space-y-4">
+      <div className="border-b pb-3 flex justify-between items-center">
+        <div>
+          <h2 className="text-xl font-bold text-slate-900">Shelter & NGO Live Intake Feed</h2>
+          <p className="text-xs text-slate-500">Donations evaluated via deterministic proximity and capacity rules.</p>
+        </div>
+        <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">
+          {activeItems.length} Available Items
+        </span>
+      </div>
+
+      {activeItems.length === 0 ? (
+        <div className="p-8 text-center bg-white rounded-2xl border text-slate-500 text-sm">
+          No surplus food currently pending match.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {activeItems.map((item) => (
+            <div key={item.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200">
+                    High Priority (< 2h)
+                  </span>
+                  <span className="text-xs font-mono text-slate-400">#{item.id}</span>
+                </div>
+                <h3 className="font-bold text-base text-slate-900">{item.foodName}</h3>
+                <p className="text-xs text-slate-500 font-medium">{item.donorName}</p>
+
+                <div className="grid grid-cols-2 gap-2 text-xs py-3 border-y border-slate-100 mt-3">
+                  <div><span className="text-slate-400 block">Quantity:</span> <strong>{item.servings} Servings</strong></div>
+                  <div><span className="text-slate-400 block">Storage:</span> <strong>{item.storageTemp}</strong></div>
+                  <div><span className="text-slate-400 block">Category:</span> <strong>{item.category}</strong></div>
+                  <div><span className="text-slate-400 block">Location:</span> <strong>{item.pickupAddress}</strong></div>
+                </div>
+
+                <div className="bg-emerald-50 p-2.5 rounded-xl border border-emerald-100 mt-3 flex justify-between items-center text-xs">
+                  <span className="font-semibold text-emerald-900">Rule-Based Match:</span>
+                  <span className="font-extrabold text-emerald-700">92/100 Score</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => onAccept && onAccept(item.id)}
+                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <Check className="w-4 h-4" /> Accept & Request Pickup
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

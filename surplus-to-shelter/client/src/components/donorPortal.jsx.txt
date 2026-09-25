@@ -1,0 +1,127 @@
+import React, { useState } from 'react';
+import { Send, Clock, Thermometer, MapPin, Phone } from 'lucide-react';
+
+export default function DonorPortal({ onPostSuccess }) {
+  const [formData, setFormData] = useState({
+    donorName: '',
+    foodName: '',
+    category: 'Cooked',
+    storageTemp: 'Hot',
+    servings: '',
+    expiryHours: '2',
+    pickupAddress: '',
+    contactPhone: ''
+  });
+
+  const loadSample = (type) => {
+    if (type === 1) {
+      setFormData({
+        donorName: 'Hotel Grand Residency',
+        foodName: 'Dal Makhani & Basmati Rice',
+        category: 'Cooked',
+        storageTemp: 'Hot',
+        servings: '45',
+        expiryHours: '2',
+        pickupAddress: 'Sector 14, Main Market, Block B',
+        contactPhone: '+91 98111 22334'
+      });
+    } else {
+      setFormData({
+        donorName: 'Campus Dining Hall',
+        foodName: 'Vegetable Pulao & Raita',
+        category: 'Cooked',
+        storageTemp: 'Hot',
+        servings: '30',
+        expiryHours: '3',
+        pickupAddress: 'University South Gate, Campus',
+        contactPhone: '+91 98222 33445'
+      });
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (onPostSuccess) onPostSuccess(formData);
+  };
+
+  return (
+    <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm max-w-2xl mx-auto space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-4">
+        <div>
+          <h2 className="text-xl font-bold text-slate-900">Donor Intake: 1-Minute Food Post</h2>
+          <p className="text-xs text-slate-500">Post surplus edible rations immediately before expiry.</p>
+        </div>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => loadSample(1)} className="text-[11px] bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded font-semibold text-slate-700">
+            Sample: Hotel (45)
+          </button>
+          <button type="button" onClick={() => loadSample(2)} className="text-[11px] bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded font-semibold text-slate-700">
+            Sample: Hostel (30)
+          </button>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="font-bold text-slate-700 block mb-1 uppercase">Donor / Entity Name</label>
+            <input required type="text" value={formData.donorName} onChange={e => setFormData({...formData, donorName: e.target.value})} placeholder="e.g. Hotel Grand" className="w-full border p-2.5 rounded-lg text-sm" />
+          </div>
+          <div>
+            <label className="font-bold text-slate-700 block mb-1 uppercase">Food Item Description</label>
+            <input required type="text" value={formData.foodName} onChange={e => setFormData({...formData, foodName: e.target.value})} placeholder="e.g. Dal Makhani & Rice" className="w-full border p-2.5 rounded-lg text-sm" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label className="font-bold text-slate-700 block mb-1 uppercase">Category</label>
+            <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full border p-2.5 rounded-lg text-sm">
+              <option value="Cooked">Cooked Food</option>
+              <option value="Raw">Raw / Fresh Produce</option>
+              <option value="Packaged">Packaged Goods</option>
+            </select>
+          </div>
+          <div>
+            <label className="font-bold text-slate-700 block mb-1 uppercase">Storage State</label>
+            <select value={formData.storageTemp} onChange={e => setFormData({...formData, storageTemp: e.target.value})} className="w-full border p-2.5 rounded-lg text-sm">
+              <option value="Hot">♨️ Hot / Fresh</option>
+              <option value="Chilled">❄️ Chilled</option>
+              <option value="Dry">🍞 Room Temp</option>
+            </select>
+          </div>
+          <div>
+            <label className="font-bold text-slate-700 block mb-1 uppercase">Servings Count</label>
+            <input required type="number" min="1" value={formData.servings} onChange={e => setFormData({...formData, servings: e.target.value})} placeholder="e.g. 50" className="w-full border p-2.5 rounded-lg text-sm" />
+          </div>
+        </div>
+
+        <div>
+          <label className="font-bold text-slate-700 block mb-1 uppercase">Safe Consumption Window (Hours)</label>
+          <div className="flex gap-2">
+            {[1, 2, 4, 6].map(h => (
+              <button key={h} type="button" onClick={() => setFormData({...formData, expiryHours: String(h)})} className={`flex-1 py-2 rounded-lg border font-semibold ${formData.expiryHours === String(h) ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-50 text-slate-700'}`}>
+                {h} Hour{h > 1 ? 's' : ''}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="font-bold text-slate-700 block mb-1 uppercase">Pickup Address</label>
+            <input required type="text" value={formData.pickupAddress} onChange={e => setFormData({...formData, pickupAddress: e.target.value})} placeholder="Full Street Address" className="w-full border p-2.5 rounded-lg text-sm" />
+          </div>
+          <div>
+            <label className="font-bold text-slate-700 block mb-1 uppercase">Contact Number</label>
+            <input required type="tel" value={formData.contactPhone} onChange={e => setFormData({...formData, contactPhone: e.target.value})} placeholder="+91 98765 43210" className="w-full border p-2.5 rounded-lg text-sm" />
+          </div>
+        </div>
+
+        <button type="submit" className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 shadow-md">
+          <Send className="w-4 h-4" /> Post Surplus Food
+        </button>
+      </form>
+    </div>
+  );
+}
