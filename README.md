@@ -8,29 +8,14 @@
 Cooked commercial surplus food spoils within a narrow 2-6 hour window. Manual communication groups fail to balance distance, capacity, and temperature conditions, causing zero custody verification and high landfill emissions.
 
 ## 💡 System Architecture
-┌────────────────────────────────────────────────────────┐
-│                   PRESENTATION TIER                    │
-│  - Semantic HTML5 & Responsive Tailwind CSS Engine     │
-│  - Role Portals: Commercial Donor | Shelter | Courier  │
-│  - Cryptographic QR Verification & Live Impact Tracker │
-└──────────────────────────┬─────────────────────────────┘
-                           │ HTTP / JSON Payload
-                           ▼
-┌────────────────────────────────────────────────────────┐
-│                    APPLICATION TIER                    │
-│  - Node.js & Express.js Microservice Engine            │
-│  - 100-Point Deterministic Matching Model:             │
-│    • Proximity: 40%         • Capacity: 25%            │
-│    • Time Urgency: 25%      • Food Category: 10%       │
-└──────────────────────────┬─────────────────────────────┘
-                           │ Dynamic State Machine
-                           ▼
-┌────────────────────────────────────────────────────────┐
-│             LOGISTICS & DIVERSION ENGINE               │
-│  - Google Maps Route Transit Optimization              │
-│  - Tamper-Proof QR Handshake Pass                      │
-│  - Automated Fallback: Municipal Bio-CNG Diversion     │
-└────────────────────────────────────────────────────────┘
+## 💡 System Architecture
+
+```mermaid
+graph TD
+    A["📱 PRESENTATION TIER<br>• HTML5 & Tailwind CSS UI<br>• Multi-Portal (Donor / Shelter / Courier)<br>• QR Verification & Live Impact Tracker"] 
+    -->|"HTTPS / JSON"| B["⚙️ APPLICATION TIER<br>• Node.js & Express.js Backend<br>• 100-Point Deterministic Match Model<br>(Distance: 40%, Capacity: 25%, Urgency: 25%, Category: 10%)"]
+    B -->|"Automated State Transitions"| C["🚚 LOGISTICS & DIVERSION ENGINE<br>• Google Maps Route Transit Optimization<br>• Tamper-Proof Dynamic QR Pass<br>• Fail-Safe Municipal Bio-CNG Diversion"]
+```
 
 ## ✨ Core Features
 - **Deterministic Matching Engine:** Real-time multi-factor scoring ensuring optimal shelter assignments.
