@@ -8,13 +8,11 @@
 Cooked commercial surplus food spoils within a narrow 2-6 hour window. Manual communication groups fail to balance distance, capacity, and temperature conditions, causing zero custody verification and high landfill emissions.
 
 ## 💡 System Architecture
-
-```mermaid
-graph TD
-    A["📱 PRESENTATION TIER<br>• HTML5 & Tailwind CSS UI<br>• Multi-Portal (Donor / Shelter / Courier)<br>• QR Verification & Live Impact Tracker"] 
-    -->|"HTTPS / JSON"| B["⚙️ APPLICATION TIER<br>• Node.js & Express.js Backend<br>• 100-Point Deterministic Match Model<br>(Distance: 40%, Capacity: 25%, Urgency: 25%, Category: 10%)"]
-    B -->|"Automated State Transitions"| C["🚚 LOGISTICS & DIVERSION ENGINE<br>• Google Maps Route Transit Optimization<br>• Tamper-Proof Dynamic QR Pass<br>• Fail-Safe Municipal Bio-CNG Diversion"]
-```
+| Tier | Component | Responsibilities |
+| :--- | :--- | :--- |
+| **Presentation Tier** | Semantic HTML5 & Tailwind CSS UI | Multi-stakeholder portals (Donor, Shelter, Courier), Dynamic QR verification pass, Live impact telemetry |
+| **Application Tier** | Node.js & Express.js Engine | Deterministic 100-Point Match Algorithm (Proximity 40%, Capacity 25%, Urgency 25%, Category 10%) |
+| **Logistics & Diversion** | Routing & Safe Diversion Engine | Google Maps transit dispatch, Dynamic QR custody transfer, Fail-safe Municipal Bio-CNG diversion |
 
 ## ✨ Core Features
 - **Deterministic Matching Engine:** Real-time multi-factor scoring ensuring optimal shelter assignments.
