@@ -8,7 +8,6 @@
 Cooked commercial surplus food spoils within a narrow 2-6 hour window. Manual communication groups fail to balance distance, capacity, and temperature conditions, causing zero custody verification and high landfill emissions.
 
 ## 💡 System Architecture
-## 💡 System Architecture
 
 ```mermaid
 graph TD
