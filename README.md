@@ -2,7 +2,7 @@
 > Real-time food rescue routing engine connecting surplus kitchens to shelters with QR verification and bio-recycle diversion.
 
 ## 🚀 Live Demo
-- **Platform URL:**https://sparkly-crostata-269911.netlify.app/
+- **Platform URL:**https://violet-angel-83.tiiny.site
 
 ## 📌 Problem Statement
 Cooked commercial surplus food spoils within a narrow 2-6 hour window. Manual communication groups fail to balance distance, capacity, and temperature conditions, causing zero custody verification and high landfill emissions.
